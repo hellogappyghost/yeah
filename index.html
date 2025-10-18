@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent Chat</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #4f46e5, #3b82f6);
+      color: white;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .chat-container {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      animation: fadeIn 1s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      max-height: 400px;
+    }
+    .msg {
+      padding: 8px 12px;
+      border-radius: 12px;
+      margin: 6px 0;
+      animation: popIn 0.3s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .user { background: #2563eb; align-self: flex-end; }
+    .bot { background: #10b981; align-self: flex-start; }
+    form {
+      display: flex;
+      gap: 8px;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+    button {
+      background: #6366f1;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: #4f46e5; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="messages" id="messages"></div>
+    <form id="chatForm">
+      <input type="text" id="userInput" placeholder="Type your message..." required />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('userInput');
+    const messagesDiv = document.getElementById('messages');
+
+    function appendMessage(text, type) {
+      const div = document.createElement('div');
+      div.className = `msg ${type}`;
+      div.textContent = text;
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+      appendMessage(message, 'user');
+      input.value = '';
+
+      try {
+        const res = await fetch('http://10.0.1.85/webhook-test/0484ee4d-57d8-4f70-85e4-234e1ac7d20f', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        appendMessage(data.reply || '⚠️ No reply received', 'bot');
+      } catch (err) {
+        appendMessage('❌ Error connecting to n8n', 'bot');
+      }
+    });
+  </script>
+</body>
+</html>
